@@ -1,0 +1,133 @@
+rules_version = '2';
+// Правила безопасности TestSpace. Заменяют проверки, которые раньше делал сервер (server.js).
+// Firebase Console → Firestore Database → Rules → вставить весь файл → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function userDoc(u) { return get(/databases/$(database)/documents/users/$(u)); }
+    function roleIs(r) { return userDoc(uid()).data.role in r; }
+    function isMember(gid) { return exists(/databases/$(database)/documents/groupMembers/$(gid + '_' + uid())); }
+    function testMeta(tid) { return get(/databases/$(database)/documents/tests/$(tid)).data; }
+    // можно ли проходить тест: не свой, и (публичный / приватный по коду / тест моей группы)
+    function canTake(tid) {
+      let t = testMeta(tid);
+      return t.teacher != uid() && (
+        t.access == 'public' ||
+        (t.access == 'private' && tid in userDoc(uid()).data.joined) ||
+        (t.access == 'group' && isMember(t.groupId)));
+    }
+
+    // Профили: читать имя может любой вошедший, менять — только владелец (роль и логин менять нельзя)
+    match /users/{u} {
+      allow get: if signedIn();
+      allow create: if signedIn() && u == uid()
+        && request.resource.data.keys().hasOnly(['name', 'username', 'role', 'joined'])
+        && request.resource.data.role in ['teacher', 'student', 'user']
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.joined == [];
+      allow update: if signedIn() && u == uid()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'joined', 'seen'])
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60;
+    }
+
+    // Группы видят только учитель-владелец и участники
+    match /groups/{g} {
+      allow get: if signedIn() && (resource.data.teacher == uid() || isMember(g));
+      allow list: if signedIn() && resource.data.teacher == uid();
+      allow create: if signedIn() && request.resource.data.teacher == uid() && roleIs(['teacher'])
+        && request.resource.data.keys().hasOnly(['name', 'teacher', 'created']);
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+    // «Ключ входа» в группу = хеш(название + пароль). Прочитать можно только зная его целиком; списка нет.
+    match /groupKeys/{k} {
+      allow get: if signedIn();
+      allow create: if signedIn() && roleIs(['teacher'])
+        && request.resource.data.keys().hasOnly(['groupId', 'teacher']) && request.resource.data.teacher == uid()
+        && get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.teacher == uid();
+    }
+    // Участники групп. Создать запись можно, только предъявив правильный ключ входа (то есть зная пароль группы).
+    match /groupMembers/{m} {
+      allow get: if signedIn() && (resource == null || resource.data.uid == uid() || resource.data.teacher == uid());
+      allow list: if signedIn() && (resource.data.uid == uid() || resource.data.teacher == uid());
+      allow create: if signedIn() && roleIs(['student'])
+        && request.resource.data.keys().hasOnly(['groupId', 'uid', 'teacher', 'key'])
+        && request.resource.data.uid == uid()
+        && m == request.resource.data.groupId + '_' + uid()
+        && get(/databases/$(database)/documents/groupKeys/$(request.resource.data.key)).data.groupId == request.resource.data.groupId
+        && get(/databases/$(database)/documents/groupKeys/$(request.resource.data.key)).data.teacher == request.resource.data.teacher;
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+
+    // Карточка теста (название, срок, таймер...) — без вопросов и без ответов. Приватные тесты в общий список не попадают.
+    match /tests/{t} {
+      allow get: if signedIn();
+      allow list: if signedIn() && (resource.data.teacher == uid() || resource.data.access in ['public', 'group']);
+      allow create: if signedIn() && request.resource.data.teacher == uid() && roleIs(['teacher', 'user'])
+        && request.resource.data.access in ['public', 'group', 'private']
+        && (request.resource.data.access != 'group' || (roleIs(['teacher'])
+            && get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.teacher == uid()));
+      allow update: if signedIn() && resource.data.teacher == uid()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['creator']);
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+    // Вопросы (без верных ответов и скрытых тестов): читает автор и те, кому тест доступен
+    match /testQuestions/{t} {
+      allow get: if signedIn() && (testMeta(t).teacher == uid() || canTake(t));
+      allow create: if signedIn() && testMeta(t).teacher == uid();
+      allow delete: if signedIn() && testMeta(t).teacher == uid();
+    }
+    // Верные ответы, скрытые тесты, код приватного теста: автор всегда; студент — только после того, как сдал свою работу
+    match /testSecrets/{t} {
+      allow get: if signedIn() && (resource.data.teacher == uid()
+        || (exists(/databases/$(database)/documents/attempts/$(t + '_' + uid()))
+            && get(/databases/$(database)/documents/attempts/$(t + '_' + uid())).data.finished == true));
+      allow list: if signedIn() && resource.data.teacher == uid();
+      allow create: if signedIn() && request.resource.data.teacher == uid() && testMeta(t).teacher == uid();
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+    // Коды приватных тестов: найти тест можно, только зная код
+    match /testCodes/{c} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['testId', 'teacher', 'title'])
+        && request.resource.data.teacher == uid() && testMeta(request.resource.data.testId).teacher == uid();
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+    // Картинки к вопросам (документ Firestore ограничен 1 МБ, поэтому они отдельно)
+    match /images/{h} {
+      allow get: if signedIn();
+      allow create: if signedIn() && roleIs(['teacher', 'user'])
+        && request.resource.data.keys().hasOnly(['data']) && request.resource.data.data is string && request.resource.data.data.size() <= 950000;
+    }
+
+    // Попытки прохождения. id документа = <id теста>_<id студента>
+    match /attempts/{a} {
+      allow get: if signedIn() && (resource == null || resource.data.student == uid() || resource.data.teacher == uid());
+      allow list: if signedIn() && (resource.data.student == uid() || resource.data.teacher == uid());
+      allow create: if signedIn() && request.resource.data.student == uid()
+        && request.resource.data.keys().hasOnly(['testId', 'student', 'teacher', 'variant', 'startedAt', 'violations', 'finished', 'answers'])
+        && a == request.resource.data.testId + '_' + uid()
+        && request.resource.data.finished == false
+        && request.resource.data.startedAt == request.time      // время старта ставит сервер Firebase
+        && request.resource.data.violations.size() == 0
+        && request.resource.data.variant is int && request.resource.data.variant >= 0
+        && request.resource.data.variant < testMeta(request.resource.data.testId).variantCount
+        && request.resource.data.teacher == testMeta(request.resource.data.testId).teacher
+        && canTake(request.resource.data.testId)
+        && (testMeta(request.resource.data.testId).deadline == null || request.time.toMillis() <= testMeta(request.resource.data.testId).deadline);
+      allow update: if signedIn() && (
+        // студент, пока работа не сдана: ответы, нарушения (их число не уменьшить), завершение
+        (resource.data.student == uid() && resource.data.finished == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'violations', 'finished', 'finishedAt', 'forced', 'expired'])
+          && request.resource.data.violations.size() >= resource.data.violations.size())
+        // студент, после сдачи: один раз записывает результат проверки
+        || (resource.data.student == uid() && resource.data.finished == true && !('graded' in resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['results', 'auto', 'pending', 'total', 'graded']))
+        // учитель: ручная оценка и автозавершение просроченных работ
+        || (resource.data.teacher == uid()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bonus', 'finished', 'finishedAt', 'forced', 'expired', 'answers', 'results', 'auto', 'pending', 'total', 'graded'])));
+      allow delete: if signedIn() && resource.data.teacher == uid();
+    }
+  }
+}

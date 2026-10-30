@@ -1,0 +1,10 @@
+services:
+  testspace:
+    build: .
+    container_name: testspace
+    ports:
+      - "8000:80"
+    volumes:
+      # правки в public/ видны сразу, без пересборки образа
+      - ./public:/usr/share/nginx/html:ro
+    restart: unless-stopped
