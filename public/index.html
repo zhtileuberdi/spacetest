@@ -264,6 +264,66 @@ html[data-ui-theme="light"] #tk .task,html[data-ui-theme="light"] #tk .pb,html[d
 html[data-ui-theme="light"] .status{background:#e9eef7;color:#192237;border-color:var(--bd)}
 
 .ts-pref-label{display:flex;gap:5px;align-items:center;font-size:12px;white-space:nowrap}.tk-top .ts-pref{font-size:12px;min-width:68px;max-width:114px;padding:5px 6px}.status button:disabled{opacity:.35;cursor:not-allowed}@media(max-width:700px){.tk-top{flex-wrap:wrap;gap:7px}.tk-top .grow{flex-basis:5px}.ts-pref-label{font-size:11px}.tk-top .ts-pref{max-width:85px}}
+
+/* TestSpace: mobile responsive layout. Desktop styling is left unchanged. */
+@media (max-width: 860px) {
+  html, body { width: 100%; max-width: 100%; }
+  body { overflow-x: clip; }
+  body.app main, #main, .content, .pg, .panel, .pb { min-width: 0; max-width: 100%; }
+  .content { width: 100%; }
+  .grid2, .tiles, .dcs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+  .fc, .dc, .panel { min-width: 0; }
+  .pg > *, .dc > *, .ci > * { min-width: 0; overflow-wrap: anywhere; }
+  .chat { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .chat .cl { max-height: 240px; overflow-y: auto; border-right: 0; border-bottom: 1px solid var(--bd); }
+  .chat .cm { min-width: 0; min-height: 300px; }
+  .chat .mi { min-width: 0; }
+  .chat .mi .inp { min-width: 0; width: 100%; }
+  .side { overflow-x: auto; max-width: 100vw; }
+  .side nav { min-width: 0; }
+  .si { min-width: 0; }
+  .sp { grid-template-columns: minmax(0, 1fr); }
+  .spl { display: none; }
+  .spr { padding: 24px 16px; min-width: 0; }
+  .authwrap { width: 100%; max-width: 100%; }
+  .fm { width: 100%; min-width: 0; }
+  .f2.r3 { grid-template-columns: minmax(0,1fr); }
+  .imgrow { flex-wrap: wrap; }
+  .hero2 .hc { width: 100%; max-width: 100%; padding: 10vh 6vw; }
+  .hc h1 span, .hc h1 em { white-space: normal; }
+  #tk { width: 100%; max-width: 100%; overflow: hidden; }
+  #tk .tk-top { padding: 8px 10px; gap: 8px; }
+  #tk .tk-top .logo { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  #tk .tk-body { min-width: 0; overflow-y: auto; overflow-x: hidden; padding: 8px; }
+  #tk .tk-body .pane { min-width: 0; width: 100%; }
+  #tk .pane .pb { overflow-x: auto; }
+  #tk .tabs { max-width: 100%; }
+  #tk .edwrap { width: 100%; min-width: 0; }
+  #tk .ta { width: 100%; min-width: 0; font-size: 16px; }
+  #tk .snips { width: 100%; max-width: 100%; }
+  #tk .exs { max-width: 100%; overflow-x: auto; }
+  #tk .exs table { width: max-content; min-width: 100%; }
+  #tk .runbar { padding: 8px; }
+  #tk .runbar textarea { min-width: 0; flex-basis: 100%; }
+  #tk .out { max-width: 100%; overflow-x: auto; }
+  #tk .status { flex-wrap: wrap; gap: 6px; padding: 8px; }
+  #tk .status button { padding: 9px 12px; max-width: 100%; }
+  .rl-box, .mon-box, .rbox { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .nav { padding: 8px 10px; }
+  .navmid { gap: 8px; }
+  .nav .inp { max-width: 110px; }
+  .brand b { font-size: 18px; }
+  .content { padding: 14px 10px 90px; }
+  .grid2, .tiles, .dcs, .kg { grid-template-columns: minmax(0, 1fr); }
+  .tk-top .ts-pref { max-width: 95px; }
+  .ts-pref-label { min-width: 0; }
+  #tk .tk-top .grow { flex-basis: 0; }
+  .rl-box { padding: 16px; }
+  .mon-btns { flex-wrap: wrap; }
+  .mon-btns .btn, .mon-btns .btn2 { min-width: 0; width: 100%; }
+}
 </style>
 </head>
 <body>
