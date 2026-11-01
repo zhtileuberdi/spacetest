@@ -129,12 +129,15 @@ async function localExecute(lang, code, tests) {
 
 // ---------- Тема, язык, верхняя панель ----------
 function theme() {
-  const m = localStorage.theme || 'light';
-  document.documentElement.classList.toggle('dark', m === 'dark' || (m === 'system' && matchMedia('(prefers-color-scheme: dark)').matches));
+  // 'system' means the original TestSpace appearance, as requested.
+  const stored = localStorage.getItem('theme');
+  const m = ['light', 'dark', 'system'].includes(stored) ? stored : 'system';
+  document.documentElement.dataset.uiTheme = m;
+  document.documentElement.classList.toggle('dark', m === 'dark');
+  document.documentElement.style.colorScheme = m === 'dark' ? 'dark' : 'light';
 }
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', theme);
-function setTheme(m) { localStorage.theme = m; theme(); }
-function cycleTheme() { const o = ['light', 'dark', 'system'], n = o[(o.indexOf(localStorage.theme || 'light') + 1) % 3]; setTheme(n); drawNav(); toast(t(n)); }
+function setTheme(m) { if (!['light', 'dark', 'system'].includes(m)) return; localStorage.setItem('theme', m); theme(); }
+function cycleTheme() { const o = ['system', 'light', 'dark'], n = o[(o.indexOf(localStorage.theme || 'system') + 1) % 3]; setTheme(n); drawNav(); toast(t(n)); }
 function setLang(l) { S.lang = l; localStorage.lang = l; S.user ? show(S.tab) : (S.page == 'auth' ? authPage() : home()); }
 function drawNav() {
   document.body.classList.toggle('app', !!S.user); if (S.user) return drawSide();
@@ -142,7 +145,7 @@ function drawNav() {
   $('nav').innerHTML = `<div class="nav"><a class="brand" onclick="${S.user ? `show('${S.tab || tabs[0]}')` : 'home()'}">${logoSVG()}<span><b>Test<i>Space</i></b></span></a>
   <div class="navmid ${S.user ? '' : 'hm'}">${S.user ? tabs.map(x => `<a class="nl ${x == S.tab ? 'on' : ''}" onclick="show('${x}')">${t(x)}</a>`).join('') : `<a class="nl on" onclick="home()">${t('s_home')}</a><a class="nl" onclick="goFeat()">${t('navFeat')}</a><a class="nl" onclick="goFeat()">${t('about')}</a>`}</div>
   <select onchange="setLang(this.value)" class="inp">${['ru', 'kk', 'en'].map(l => `<option value=${l} ${S.lang == l ? 'selected' : ''}>${l.toUpperCase()}</option>`).join('')}</select>
-  <button class="btn2 ic" onclick="cycleTheme()" title="${t(localStorage.theme || 'light')}">${{ light: ic('sun'), dark: ic('moon'), system: ic('half') }[localStorage.theme || 'light']}</button>
+  <button class="btn2 ic" onclick="cycleTheme()" title="${t(localStorage.theme || 'system')}">${{ light: ic('sun'), dark: ic('moon'), system: ic('half') }[localStorage.theme || 'system']}</button>
   ${S.user ? `<span class="mut hs">${esc(S.user.name)}</span><button class="btn2" onclick="logout()">${t('logout')}</button>` : `<button class="btn2" onclick="openAuth(false)">${t('login')}</button>`}</div>${S.user ? `<div class="tabbar">${tabs.map(x => `<a class="${x == S.tab ? 'on' : ''}" onclick="show('${x}')"><i>${ic({ groups: 'users', tests: 'doc', stats: 'chart' }[x])}</i>${t(x)}</a>`).join('')}</div>` : ''}`;
 }
 
@@ -627,7 +630,7 @@ async function pHome() {
 }
 async function pProfile() {
   $('v').innerHTML = `<div class="pg"><h1>${t('s_profile')}</h1></div><div class="panel"><div class="pb form"><div style="display:flex;gap:16px;align-items:center"><span class="ava big">${ini(S.user.name)}</span><div><h2>${esc(S.user.name)}</h2><span class="chip">${t(S.user.role)}</span></div></div>
-  <label>${t('theme')}</label><select class="inp" onchange="setTheme(this.value);show('profile')">${['light', 'dark', 'system'].map(m => `<option value=${m} ${(localStorage.theme || 'light') == m ? 'selected' : ''}>${t(m)}</option>`).join('')}</select>
+  <label>${t('theme')}</label><select class="inp" onchange="setTheme(this.value);show('profile')">${['light', 'dark', 'system'].map(m => `<option value=${m} ${(localStorage.theme || 'system') == m ? 'selected' : ''}>${t(m)}</option>`).join('')}</select>
   <label>${t('langL')}</label><select class="inp" onchange="setLang(this.value)">${['ru', 'kk', 'en'].map(l => `<option value=${l} ${S.lang == l ? 'selected' : ''}>${{ ru: 'Русский', kk: 'Қазақша', en: 'English' }[l]}</option>`).join('')}</select>
   <button class="btn2" onclick="editProfile()">${t('editProfile')}</button><button class="btn2 coral" onclick="logout()">${t('logout')}</button></div></div>`;
 }

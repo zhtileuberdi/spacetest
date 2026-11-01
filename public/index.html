@@ -207,6 +207,62 @@ body.app main{margin-left:230px}
 @keyframes monIn{from{opacity:0}to{opacity:1}}@keyframes monShake{0%,100%{transform:none}25%{transform:translateX(-8px) rotate(-1.5deg)}75%{transform:translateX(8px) rotate(1.5deg)}}
 .fr{margin-top:6px;color:#ffd0d4;font-weight:600}
 .spl.art{height:100%;align-self:stretch}
+
+/* Theme modes: "system" preserves the original TestSpace visual design.
+   Light and dark are deliberate full UI palettes, not OS preference. */
+html[data-ui-theme="light"]{
+  --page:#f3f6fb;--bg:#fff;--side:#f7f9fd;--bar:#fff;
+  --bd:#dce3ef;--tx:#192237;--mut:#596881;--ed:#f6f8fc;
+  --sel:#ffe9ec;--hov:#edf2fa;--sh:0 2px 14px rgba(30,40,75,.08);
+}
+html[data-ui-theme="dark"]{
+  --page:#101117;--bg:#1b1d27;--side:#222431;--bar:#1b1d27;
+  --bd:#35394a;--tx:#eef0f7;--mut:#a9b0c4;--ed:#141620;
+  --sel:#38232e;--hov:#2b2e3d;--sh:0 3px 18px rgba(0,0,0,.38);
+}
+html[data-ui-theme="light"] .nav{background:#fff;color:#192237;border-color:var(--bd)}
+html[data-ui-theme="light"] .nav .nl{color:#344059}
+html[data-ui-theme="light"] .nav .nl.on{color:var(--acc)}
+html[data-ui-theme="light"] .nav .inp,html[data-ui-theme="light"] .nav .btn2{background:#fff;color:#192237;border-color:var(--bd)}
+html[data-ui-theme="light"] .side{background:#f9fafc;color:#192237;border-right:1px solid var(--bd)}
+html[data-ui-theme="light"] .side .brand b{color:#192237}
+html[data-ui-theme="light"] .si{color:#344059}
+html[data-ui-theme="light"] .si:hover{background:#e9edf5}
+html[data-ui-theme="light"] .si.on{color:#fff}
+html[data-ui-theme="light"] .dc{background:var(--bg);color:var(--tx)}
+html[data-ui-theme="light"] .ico{background:#e7edf6;color:#192237}
+html[data-ui-theme="light"] .bub{background:#e8eef8;color:#192237}
+html[data-ui-theme="light"] .bub.me{background:var(--acc);color:#fff}
+html[data-ui-theme="light"] .hero2{background:#f3f6fb;color:#192237}
+html[data-ui-theme="light"] .hero2 canvas{opacity:.09}
+html[data-ui-theme="light"] .hc p{color:#485775}
+html[data-ui-theme="light"] .feats{background:#f3f6fb}
+html[data-ui-theme="light"] .fc{background:#fff;border-color:var(--bd);color:var(--tx)}
+html[data-ui-theme="light"] .fc p{color:var(--mut)}
+html[data-ui-theme="light"] .authwrap,html[data-ui-theme="light"] .sp,html[data-ui-theme="light"] .spr{background:#f4f7fc}
+html[data-ui-theme="dark"] .nav{background:#171922;color:#eef0f7;border-color:var(--bd)}
+html[data-ui-theme="dark"] .nav .nl{color:#d1d6e4}
+html[data-ui-theme="dark"] .nav .nl.on{color:#fff}
+html[data-ui-theme="dark"] .nav .inp,html[data-ui-theme="dark"] .nav .btn2{background:#222431;color:#eef0f7;border-color:var(--bd)}
+html[data-ui-theme="dark"] .side{background:#151720;border-right:1px solid var(--bd)}
+html[data-ui-theme="dark"] .dc{background:var(--bg);color:var(--tx)}
+html[data-ui-theme="dark"] .bub{background:#2d3040;color:var(--tx)}
+html[data-ui-theme="dark"] .bub.me{background:var(--acc);color:#fff}
+html[data-ui-theme="dark"] .hero2{background:#0c0d13;color:#eef0f7}
+html[data-ui-theme="dark"] .hc p{color:#c0c6d3}
+html[data-ui-theme="dark"] .feats{background:#0c0d13}
+html[data-ui-theme="dark"] .fc{background:#1b1d27;border-color:var(--bd);color:var(--tx)}
+html[data-ui-theme="dark"] .fc p{color:var(--mut)}
+html[data-ui-theme="dark"] .authwrap,html[data-ui-theme="dark"] .sp,html[data-ui-theme="dark"] .spr{background:#151821}
+html[data-ui-theme="dark"] .fm h2,html[data-ui-theme="dark"] .fm label{color:#eff2fa}
+html[data-ui-theme="dark"] .sub,html[data-ui-theme="dark"] .or{color:#aeb8cc}
+html[data-ui-theme="dark"] .fw .inp,html[data-ui-theme="dark"] .rtab,html[data-ui-theme="dark"] .soc button{background:#222635;color:#f2f4fb;border-color:#3c435a}
+html[data-ui-theme="dark"] .rtab.on{background:var(--acc);color:#fff}
+html[data-ui-theme="dark"] #tk{--page:#11131b;--bg:#1d202b;--side:#252938;--bar:#1d202b;--bd:#363a4c;--tx:#eef0f7;--mut:#a6adbf;--ed:#151822;--sel:#372332;--hov:#2b3040}
+html[data-ui-theme="light"] #tk{--page:#f3f6fb;--bg:#fff;--side:#f7f9fd;--bar:#fff;--bd:#dce3ef;--tx:#192237;--mut:#596881;--ed:#f6f8fc;--sel:#ffe9ec;--hov:#edf2fa;color:var(--tx)}
+html[data-ui-theme="light"] #tk .task,html[data-ui-theme="light"] #tk .pb,html[data-ui-theme="light"] #tk .exs td,html[data-ui-theme="light"] #tk .exs th,html[data-ui-theme="light"] #tk .ph{color:var(--tx)}
+html[data-ui-theme="light"] .status{background:#e9eef7;color:#192237;border-color:var(--bd)}
+
 </style>
 </head>
 <body>
