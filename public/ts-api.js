@@ -101,8 +101,8 @@ export function createApi({ F, auth, localExecute }) {
   }
 
   // ---------- Проверка работы (раньше делал сервер) ----------
-  // Код студента проверяется в браузере: JavaScript и Python. Для Java и C++ браузер компилятора не имеет,
-  // такие задания остаются «на проверку учителю» (поле pending), как раньше при отсутствии компилятора.
+  // Новые кодинг-задания доступны только для Python и JavaScript.
+  // Старые Java/C++ задания в Firebase не удаляются; их автоматическая проверка недоступна.
   async function gradeVariant(qs, answers) {
     let auto = 0, pending = 0; const results = [];
     for (let i = 0; i < qs.length; i++) {
@@ -288,7 +288,7 @@ export function createApi({ F, auth, localExecute }) {
     }
     const cl = questions.map(q => q.type === 'mc'
       ? { type: 'mc', text: String(q.text), image: imgOk(q.image), options: q.options.map(String), correct: +q.correct, variant: +q.variant || 1, time: +q.time || 60 }
-      : { type: 'code', text: String(q.text), image: imgOk(q.image), lang: ['javascript', 'python', 'java', 'cpp'].includes(q.lang) ? q.lang : 'python', cmode: ['starter', 'fix'].includes(q.cmode) ? q.cmode : 'scratch',
+      : { type: 'code', text: String(q.text), image: imgOk(q.image), lang: ['javascript', 'python'].includes(q.lang) ? q.lang : 'python', cmode: ['starter', 'fix'].includes(q.cmode) ? q.cmode : 'scratch',
           starter: String(q.starter || ''), hint: String(q.hint || ''), variant: +q.variant || 1, time: +q.time || 300,
           tests: (q.tests || []).map(x => ({ input: String(x.input || ''), expected: String(x.expected || ''), hidden: !!x.hidden })) });
     const nums = [...new Set(cl.map(q => q.variant))].sort((a, b) => a - b);

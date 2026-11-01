@@ -59,7 +59,8 @@ const t = k => (I18N[S.lang][k] ?? I18N.ru[k] ?? k);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ini = n => esc((n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase());
 const norm = s => String(s ?? '').replace(/\r/g, '').split('\n').map(l => l.trimEnd()).join('\n').trim();
-const LN = { javascript: 'JavaScript', python: 'Python', java: 'Java', cpp: 'C++' };
+const LN = { javascript: 'JavaScript', python: 'Python' };
+const LEGACY_LANG = { java: 'Java', cpp: 'C++' }; // Старые задания сохраняются без изменений
 const SHAPES = ['▲', '◆', '●', '■'];
 // Раньше здесь был fetch на свой сервер (/api/...). Теперь запросы обрабатывает ts-api.js поверх Firebase (формат ответов прежний).
 async function api(p, m = 'GET', b) {
@@ -288,7 +289,12 @@ function testCard(x) {
 }
 async function sTests() {
   const ts = await api('/tests');
-  $('v').innerHTML = PG(t('hello').replace('{n}', first()), t('sTestsSub'), `<button class="btn2" onclick="show('catalog')">${ic('globe')} ${t('s_catalog')}</button>`) + (ts.length ? `<div class="grid2">${ts.map(testCard).join('')}</div>` : EMPTY('{ }', t('noSTests'), t('noSTestsText')));
+  const available = ts.filter(x => !(x.attempt && x.attempt.finished));
+  const completed = ts.filter(x => x.attempt && x.attempt.finished);
+  $('v').innerHTML = PG(t('hello').replace('{n}', first()), t('sTestsSub'), `<button class="btn2" onclick="show('catalog')">${ic('globe')} ${t('s_catalog')}</button>`)
+    + `<h3 class="h3">${t('ts_available')}</h3>`
+    + (available.length ? `<div class="grid2">${available.map(testCard).join('')}</div>` : EMPTY('{ }', t('ts_no_available'), t('ts_no_available_desc')))
+    + (completed.length ? `<h3 class="h3" style="margin-top:26px">${t('ts_completed')}</h3><div class="grid2">${completed.map(testCard).join('')}</div>` : '');
 }
 async function tTests() {
   const [ts, tk] = await Promise.all([api('/tests'), api('/available')]), mk = `<button class="btn" onclick="newTest()">+ ${t('newTest')}</button>`;
@@ -363,7 +369,7 @@ function addQ() {
   NQ.push(q); $('qx').value = ''; QIMG = ''; $('qimgp').innerHTML = ''; $('qimgf').value = ''; renderNQ();
 }
 function renderNQ() {
-  $('nq').innerHTML = NQ.map((q, i) => `<div class="row"><span class="chip mono">v${q.variant}</span><span class="chip ${q.type == 'code' ? 'b-warn' : 'b-ok'}">${q.type == 'code' ? LN[q.lang] : t('typeQuizShort')}</span>${q.image ? '<span class="chip">' + ic('camera') + '</span>' : ''}<span class="grow">${esc(q.text.slice(0, 90))}</span><button class="dng" onclick="NQ.splice(${i},1);renderNQ()">✕</button></div>`).join('') || `<div class="pb mut">${t('noQs')}</div>`;
+  $('nq').innerHTML = NQ.map((q, i) => `<div class="row"><span class="chip mono">v${q.variant}</span><span class="chip ${q.type == 'code' ? 'b-warn' : 'b-ok'}">${q.type == 'code' ? (LN[q.lang] || LEGACY_LANG[q.lang] || q.lang) : t('typeQuizShort')}</span>${q.image ? '<span class="chip">' + ic('camera') + '</span>' : ''}<span class="grow">${esc(q.text.slice(0, 90))}</span><button class="dng" onclick="NQ.splice(${i},1);renderNQ()">✕</button></div>`).join('') || `<div class="pb mut">${t('noQs')}</div>`;
 }
 let QIMG = '';
 function accCh() { const a = $('tacc')?.value; if (!a) return; $('tcw').style.display = a == 'private' ? 'grid' : 'none'; $('tgw').style.display = a == 'group' ? 'grid' : 'none'; }
@@ -462,7 +468,7 @@ const SN = {
 };
 const wordAt = ta => (/[A-Za-z_]+$/.exec(ta.value.slice(0, ta.selectionStart)) || [''])[0];
 function insSn(i) {
-  const ta = $('ta'), [k, c] = SN[TK.d.questions[TK.i].lang][i], pos = ta.selectionStart, w = wordAt(ta), start = (w && k.startsWith(w)) ? pos - w.length : pos;
+  const ta = $('ta'), [k, c] = (SN[TK.d.questions[TK.i].lang] || [])[i], pos = ta.selectionStart, w = wordAt(ta), start = (w && k.startsWith(w)) ? pos - w.length : pos;
   const ind = /^\s*/.exec(ta.value.slice(0, start).split('\n').pop())[0], code = c.replace(/\n/g, '\n' + ind), caret = code.indexOf('§');
   ta.setRangeText(code.replace('§', ''), start, ta.selectionEnd, 'end'); ta.selectionStart = ta.selectionEnd = start + (caret < 0 ? code.length : caret); ACS.skip = true; ta.focus(); edIn();
 }
@@ -513,30 +519,48 @@ async function startTest2(id) {
     guards(true); renderTest(); tick = setInterval(tickFn, 1000);
   } catch (e) { fail(e); }
 }
+// Preferences inside an active attempt must not reset the timer or saved answers.
+function testPreference(kind, value) {
+  if (!TK || TK.done) return;
+  if (kind === 'theme') setTheme(value);
+  if (kind === 'lang' && ['ru', 'kk', 'en'].includes(value)) { S.lang = value; localStorage.lang = value; }
+  renderTest();
+}
+function navigateQ(delta) {
+  if (!TK || TK.done) return;
+  const per = TK.d.timerMode === 'per';
+  // In per-question timer mode, going back would circumvent the question deadline.
+  if (per && delta < 0) return;
+  const next = TK.i + delta;
+  if (next < 0 || next >= TK.d.questions.length) return;
+  TK.i = next;
+  if (per) TK.qEnd = Date.now() + (TK.d.questions[next].time || 60) * 1000;
+  renderTest();
+}
 function renderTest() {
   let r = $('tk'); if (!r) { r = document.createElement('div'); r.id = 'tk'; document.body.appendChild(r); }
   const d = TK.d, qs = d.questions, per = d.timerMode == 'per', q = qs[TK.i], last = TK.i >= qs.length - 1, code = q.type == 'code';
-  r.innerHTML = `<div class="tk-top"><span class="mono logo">&lt;/&gt; ${esc(d.title)}</span><span class="grow"></span><span id=tkv class="hearts">${heartsHTML(TK.v)}</span><span id=tmr class="mono timer"></span></div>
+  r.innerHTML = `<div class="tk-top"><span class="mono logo">&lt;/&gt; ${esc(d.title)}</span><span class="grow"></span><label class="ts-pref-label">${t('langL')} <select class="inp ts-pref" aria-label="${t('langL')}" onchange="testPreference('lang',this.value)">${['ru','kk','en'].map(l=>`<option value="${l}" ${S.lang===l?'selected':''}>${l.toUpperCase()}</option>`).join('')}</select></label><label class="ts-pref-label">${t('theme')} <select class="inp ts-pref" aria-label="${t('theme')}" onchange="testPreference('theme',this.value)">${['system','light','dark'].map(m=>`<option value="${m}" ${(localStorage.theme||'system')===m?'selected':''}>${t(m)}</option>`).join('')}</select></label><span id=tkv class="hearts">${heartsHTML(TK.v)}</span><span id=tmr class="mono timer"></span></div>
   <div class="tabs mono">${qs.map((x, i) => { const a = TK.ans[i]; const dn = a !== undefined && a !== '' && a !== x.starter; return `<div class="tab ${i == TK.i ? 'on' : ''}" ${per ? '' : `onclick="goQ(${i})"`}>${x.type == 'code' ? '{ }' : '?'} ${i + 1}${dn ? ' <span class="ok">●</span>' : ''}</div>`; }).join('')}</div>
-  <div class="tk-body"><div class="panel pane"><div class="ph">${t('task')} ${TK.i + 1}/${qs.length}${code ? ' · ' + LN[q.lang] : ''}</div><div class="pb"><div class="task">${esc(q.text)}</div>${q.image ? `<img class="qimg" src="${q.image}" onclick="window.open(this.src)">` : ''}
+  <div class="tk-body"><div class="panel pane"><div class="ph">${t('task')} ${TK.i + 1}/${qs.length}${code ? ' · ' + (LN[q.lang] || LEGACY_LANG[q.lang] || q.lang) : ''}</div><div class="pb"><div class="task">${esc(q.text)}</div>${q.image ? `<img class="qimg" src="${q.image}" onclick="window.open(this.src)">` : ''}
   ${code && q.cmode == 'fix' ? `<div class="fixb">${t('fixTask')}</div>` : ''}
   ${code && q.hint ? `<details class="hintbox" open><summary>${t('hintTitle')}</summary><div>${esc(q.hint)}</div></details>` : ''}
   ${code && q.examples && q.examples.length ? `<div class="exs"><b>${t('examples')}</b><table><tr><th>${t('tInShort')}</th><th>${t('tOutShort')}</th></tr>${q.examples.map(x => `<tr><td>${esc(x.input) || '∅'}</td><td>${esc(x.expected)}</td></tr>`).join('')}</table></div>` : ''}</div></div>
-  <div class="panel pane">${code ? `<div class="snips"><span>${t('snippets')}:</span>${SN[q.lang].map((s, i) => `<button class="sn" onclick="insSn(${i})">${s[0]}</button>`).join('')}</div>
+  <div class="panel pane">${code ? `<div class="snips"><span>${t('snippets')}:</span>${(SN[q.lang] || []).map((s, i) => `<button class="sn" onclick="insSn(${i})">${s[0]}</button>`).join('')}</div>
     <div class="edwrap"><pre id=gut class="gut mono"></pre><textarea id=ta class="ta mono" spellcheck=false wrap=off autocapitalize=off autocorrect=off placeholder="${t('scratchPh')}" oninput="edIn()" onscroll="$('gut').scrollTop=this.scrollTop" onkeydown="tabKey(event)" onblur="setTimeout(acClose,150)"></textarea></div>
     <div class="runbar"><button class="btn sm" onclick="runCode(false)">${ic('play')} ${t('run')}</button><textarea id=cin class="inp mono" placeholder="${t('stdinLabel')}"></textarea><button class="btn2 sm" onclick="runCode(true)">${ic('play')} ${t('runCustom')}</button></div><div id=out class="out"></div>`
     : `<div class="kg ${TK.ans[TK.i] !== undefined ? 'picked' : ''}">${q.options.map((o, k) => `<button class="kt k${k} ${TK.ans[TK.i] === k ? 'sel' : ''}" onclick="pick(${k})"><span class="s">${SHAPES[k]}</span>${esc(o)}</button>`).join('')}</div>`}</div></div>
-  <div id=tks class="status mono ${TK.v ? 'hot' : ''}"><span class="grow"></span>${per && !last ? `<button onclick="nextQ()">${t('next')} →</button>` : `<button onclick="finish(false)">${t('submit')}</button>`}</div>`;
+  <div id=tks class="status mono ${TK.v ? 'hot' : ''}"><button ${TK.i===0||per?'disabled':''} onclick="navigateQ(-1)">← ${t('ts_previous')}</button><span class="grow"></span>${!last ? `<button onclick="navigateQ(1)">${t('next')} →</button><button onclick="finish(false)">${t('submit')}</button>` : `<button onclick="finish(false)">${t('submit')}</button>`}</div>`;
   if (code) { const ta = $('ta'); ta.value = TK.ans[TK.i] ?? (q.cmode && q.cmode != 'scratch' ? q.starter || '' : ''); edGut(); $('out').innerHTML = TK.out[TK.i] || `<span class="mut">${t('outHint')}</span>`; }
   tickFn();
 }
-const goQ = i => { TK.i = i; renderTest(); };
+const goQ = i => { if (!TK || TK.done || TK.d.timerMode === "per" || i < 0 || i >= TK.d.questions.length) return; TK.i = i; renderTest(); };
 const pick = k => { TK.ans[TK.i] = k; saveSoon(); renderTest(); };
-function nextQ() { TK.i++; TK.qEnd = Date.now() + (TK.d.questions[TK.i].time || 60) * 1000; renderTest(); }
+function nextQ() { navigateQ(1); }
 function edGut() { const n = $('ta').value.split('\n').length; $('gut').innerHTML = Array.from({ length: n }, (_, i) => `<span class="${TK.errLine == i + 1 ? 'eln' : ''}">${i + 1}</span>`).join('\n'); }
 function edIn() {
   const ta = $('ta'); TK.ans[TK.i] = ta.value; TK.errLine = null; edGut(); saveSoon(); if (TK.hasErr) { TK.hasErr = false; setOut(''); }
-  const w = wordAt(ta), arr = SN[TK.d.questions[TK.i].lang]; document.querySelectorAll('.sn').forEach((b, i) => b.classList.toggle('hit', !!w && arr[i][0].startsWith(w)));
+  const w = wordAt(ta), arr = SN[TK.d.questions[TK.i].lang] || []; document.querySelectorAll('.sn').forEach((b, i) => b.classList.toggle('hit', !!w && arr[i][0].startsWith(w)));
   if (ACS.skip) { ACS.skip = false; acClose(); } else acUpdate();
 }
 const setOut = h => { TK.out[TK.i] = h; $('out').innerHTML = h; };
@@ -555,7 +579,7 @@ function errBlock(q, text, timedOut, kind) {
 }
 function showResult(q, r, custom) {
   let h = ''; TK.errLine = null; TK.hasErr = false;
-  if (r.missing) h = `<div class="err">${t('errMissing').replace('{l}', LN[q.lang])}</div>`;
+  if (r.missing) h = `<div class="err">${t('errMissing').replace('{l}', LN[q.lang] || LEGACY_LANG[q.lang] || q.lang)}</div>`;
   else if (r.compile != null) h = errBlock(q, r.compile, r.timedOut, 'errCompile');
   else {
     const bad = r.results.find(x => x.err || x.timedOut); if (bad) h += errBlock(q, bad.err, bad.timedOut, 'errRuntime');
@@ -599,7 +623,7 @@ async function finish(forced) {
     let ok = TK.ans[0] === 1 ? 1 : 0; const ex = await localExecute('javascript', TK.ans[1] || '', TK.tests);
     if (!ex.missing && ex.results.length) ok += ex.results.filter(x => x.ok).length / ex.results.length;
     r = { percent: Math.round(ok / 2 * 100) };
-  } else { try { r = await api(`/tests/${TK.id}/submit`, 'POST', { answers: TK.ans, forced }); } catch (e) { } }
+  } else { try { r = await api(`/tests/${TK.id}/submit`, 'POST', { answers: TK.ans, forced }); } catch (e) { TK.done = false; tick = setInterval(tickFn, 1000); toast(t('ts_submit_error')); return; } }
   if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
   $('tk')?.remove(); $('mon')?.remove(); TK = null;
   resultModal(r, forced, demo);
@@ -655,3 +679,7 @@ theme();
   try { S.user = await api('/me'); show('home'); return; } catch (e) { }
   home();
 })();
+
+Object.assign(I18N.ru, {ts_available:'Доступные задания',ts_completed:'Выполненные задания',ts_no_available:'Нет доступных заданий',ts_no_available_desc:'Все назначенные задания уже выполнены.',ts_previous:'Назад',ts_submit_error:'Не удалось сохранить результат. Проверьте интернет и попробуйте снова.'});
+Object.assign(I18N.kk, {ts_available:'Қолжетімді тапсырмалар',ts_completed:'Орындалған тапсырмалар',ts_no_available:'Қолжетімді тапсырмалар жоқ',ts_no_available_desc:'Барлық берілген тапсырмалар орындалған.',ts_previous:'Артқа',ts_submit_error:'Нәтиже сақталмады. Интернетті тексеріп, қайта көріңіз.'});
+Object.assign(I18N.en, {ts_available:'Available tasks',ts_completed:'Completed tasks',ts_no_available:'No available tasks',ts_no_available_desc:'All assigned tasks are complete.',ts_previous:'Back',ts_submit_error:'Could not save the result. Check your connection and try again.'});
