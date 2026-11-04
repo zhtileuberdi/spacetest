@@ -324,6 +324,27 @@ html[data-ui-theme="light"] .status{background:#e9eef7;color:#192237;border-colo
   .mon-btns { flex-wrap: wrap; }
   .mon-btns .btn, .mon-btns .btn2 { min-width: 0; width: 100%; }
 }
+
+/* Profile: full-width desktop layout with a single action area at the bottom. */
+.profile-panel{width:100%;min-width:0}
+.profile-content{width:100%;max-width:none!important;margin:0!important;padding:clamp(20px,3vw,42px)!important;display:block!important;min-width:0}
+.profile-top{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-bottom:28px;margin-bottom:28px;border-bottom:1px solid var(--bd)}
+.profile-person{display:flex;align-items:center;gap:22px;min-width:0}
+.profile-person-name{min-width:0;overflow-wrap:anywhere}
+.profile-person-name h2{margin:0 0 10px;font-size:clamp(22px,2.3vw,32px)}
+.profile-photo-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.profile-action-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.profile-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(20px,3vw,44px);align-items:start}
+.profile-section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.profile-section h3{font-size:19px;margin:0 0 10px;font-weight:700}
+.profile-section label{margin:8px 0 0;font-weight:600}
+.profile-section .inp{display:block;width:100%;max-width:none;min-width:0;box-sizing:border-box}
+.profile-section textarea{resize:vertical;min-height:154px}
+.profile-footer{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:34px;padding-top:24px;border-top:1px solid var(--bd)}
+.profile-footer .btn,.profile-footer .btn2{width:auto;min-width:185px;min-height:46px;text-align:center}
+@media(max-width:850px){.profile-grid{grid-template-columns:minmax(0,1fr)}.profile-top{align-items:flex-start}}
+@media(max-width:540px){.profile-content{padding:18px!important}.profile-top{gap:16px;padding-bottom:20px;margin-bottom:20px}.profile-person{gap:12px}.profile-person .ava.big{width:74px;height:74px}.profile-photo-actions,.profile-action-buttons{width:100%}.profile-action-buttons>*{flex:1 1 140px;text-align:center}.profile-footer{flex-direction:column}.profile-footer .btn,.profile-footer .btn2{width:100%;min-width:0}}
+
 </style>
 </head>
 <body>

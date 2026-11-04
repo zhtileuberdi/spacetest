@@ -16,7 +16,7 @@ export function createApi({ F, auth, localExecute }) {
   const D = path => F.doc(F.db, ...path.split('/'));
   const C = name => F.collection(F.db, name);
   const chunk = (a, n) => { const r = []; for (let i = 0; i < a.length; i += n) r.push(a.slice(i, i + n)); return r; };
-  const pub = u => ({ id: u.id, name: u.name, role: u.role });
+  const pub = u => ({ id: u.id, name: u.name, role: u.role, bio: u.bio || '', avatar: u.avatar || '' });
   const accessOf = t => t.access || 'group';
   const pct = a => Math.min(100, Math.round(((a.auto || 0) + (a.bonus || 0)) / (a.total || 1) * 100));
   const clean = o => JSON.parse(JSON.stringify(o)); // убирает undefined: Firestore их не принимает
@@ -197,10 +197,19 @@ export function createApi({ F, auth, localExecute }) {
   });
   on('GET', /^\/me$/, async () => pub(await me()));
   on('PUT', /^\/me$/, async b => {
-    const u = await me(), name = String(b.name || '').trim().slice(0, 60); if (!name) throw E('invalid');
-    await F.updateDoc(D('users/' + u.id), { name }); u.name = name;
-    if (CREATOR.includes(u.role)) { // имя автора показывается в карточках тестов
-      try { for (const t of await where('tests', ['teacher', '==', u.id])) await F.updateDoc(D('tests/' + t.id), { creator: name }); } catch (e) { }
+    const u = await me();
+    const name = String(b.name || '').trim();
+    const bio = String(b.bio || '').trim();
+    const avatar = String(b.avatar || '');
+    if (!name || name.length > 60 || bio.length > 300 || avatar.length > 80000 ||
+        (avatar && !/^data:image\/(?:jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(avatar))) throw E('invalid');
+    const oldName = u.name;
+    await F.updateDoc(D('users/' + u.id), { name, bio, avatar });
+    Object.assign(u, { name, bio, avatar });
+    userCache.set(u.id, u);
+    if (oldName !== name && CREATOR.includes(u.role)) {
+      try { for (const t of await where('tests', ['teacher', '==', u.id]))
+        await F.updateDoc(D('tests/' + t.id), { creator: name }); } catch (e) { }
     }
     return pub(u);
   });

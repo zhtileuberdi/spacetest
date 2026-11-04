@@ -52,7 +52,7 @@ function startSphere(cv){
 }
 const TS = localStorage;
 const DEMO_HINT = '';
-const S = { user: null, lang: localStorage.lang || 'ru', tab: null, page: 'home' };
+const S = { user: null, lang: localStorage.lang || 'kk', tab: null, page: 'home' };
 let TK = null, tick = null, poll = null, NQ = [], regMode = false, QT = 'mc', CT = [];
 const $ = i => document.getElementById(i);
 const t = k => (I18N[S.lang][k] ?? I18N.ru[k] ?? k);
@@ -234,14 +234,13 @@ function authPage() {
   S.page = 'auth'; drawNav(); $('nav').innerHTML = ''; ROLE = 'student';
   const R = regMode;
   const fld = (id, i, ph, type = 'text') => `<div class="fw"><i>${ic(i)}</i><input id=${id} type=${type} class="inp" placeholder="${ph}" autocapitalize=off>${type == 'password' ? `<button type=button class="eye" onclick="const i=$('${id}');i.type=i.type=='password'?'text':'password'">${ic('eye')}</button>` : ''}</div>`;
-  const brand = c => `<svg viewBox="0 0 24 24" width="22" height="22"><path fill="${c}" d="M21.5 4.5L2.9 11.7c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.8c.3-1.3-.5-1.8-1.5-1.4z"/></svg>`;
   $('main').innerHTML = `<div class="authwrap"><div class="sp"><div class="spl art"><img src="auth-art.jpg" alt="" draggable="false"></div>
   <div class="spr"><a class="xx" onclick="home()">\u2715</a><div class="fm"><div class="alogo">${logoSVG()}<b>Test<i>Space</i></b></div><h2>${t(R ? 'regT' : 'authLoginSub0')}</h2><p class="sub">${t(R ? 'regS' : 'loginS')}</p>
   ${R ? `<div class="seg"><button type=button class="on" id=rs onclick="pickRole('student')">${t('iStudent')}</button><button type=button id=rt onclick="pickRole('teacher')">${t('iTeacher')}</button><button type=button id=rx onclick="pickRole('user')">${t('iUser')}</button></div>${fld('an', 'user', t('labName'))}` : ''}
   ${fld('au', R ? 'mail' : 'user', R ? 'Email' : t('labLogin'))}${fld('ap', 'lock', t('password'), 'password')}
   ${R ? '' : `<div class="rm"><label><input type=checkbox checked> ${t('remember')}</label><a onclick="toast(t('soon'))">${t('forgot')}</a></div>`}
   <button class="btn big" onclick="doAuth()">${t(R ? 'register' : 'login')}</button>
-  ${R ? '' : `<p class="ctr or">${t('orVia')}</p><div class="soc"><button onclick="toast(t('soon'))"><span class="gg">G</span></button><button onclick="toast(t('soon'))">${brand('#229ed9')}</button></div>`}
+
   <p class="ctr sw">${t(R ? 'have2' : 'no2')} <a onclick="regMode=!regMode;authPage()">${t(R ? 'login' : 'regLink')}</a></p>${DEMO_HINT}</div></div></div></div>`;
 }
 let ROLE = 'student';
@@ -318,7 +317,7 @@ async function joinCode() {
 }
 async function pHomeU() {
   const [mine, tk] = await Promise.all([api('/tests'), api('/available')]);
-  $('v').innerHTML = `<div class="pg"><div><h1>${t('hello').replace('{n}', first())}</h1><p>${t('uHomeSub')}</p></div><span class="ava">${ini(S.user.name)}</span></div>
+  $('v').innerHTML = `<div class="pg"><div><h1>${t('hello').replace('{n}', first())}</h1><p>${t('uHomeSub')}</p></div>${profileAvatar(S.user)}</div>
   <div class="dcs"><div class="dc"><span class="dci">${ic('doc')}</span><div><small>${t('myTasks')}</small><b>${mine.length}</b></div></div><div class="dc"><span class="dci">${ic('play')}</span><div><small>${t('taken')}</small><b>${tk.length}</b></div></div><div class="dc"><span class="dci">${ic('globe')}</span><div><small>${t('s_catalog')}</small><small>${t('catSub')}</small></div></div></div>
   <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" onclick="newTest()">+ ${t('newTest')}</button><button class="btn2" onclick="show('catalog')">${ic('globe')} ${t('s_catalog')}</button></div>`;
 }
@@ -637,37 +636,84 @@ function resultModal(r, forced, demo) {
 
 
 Object.assign(I18N.ru,{h1a:'Твой путь',h1b:'в мир программирования',h1c:'начинается здесь.',h1p:'Проходи тесты, выполняй задания и развивай свои навыки вместе с TestSpace.',sphHint:'Крути сферу мышью',welcome:'Добро пожаловать!',welcomeSub:'Войдите в свой аккаунт, чтобы продолжить.',authLoginSub0:'Вход в аккаунт',confirmPass:'Подтвердите пароль',remember:'Запомнить меня',forgot:'Забыли пароль?',orVia:'или войти через',soon:'Скоро будет доступно',passMismatch:'Пароли не совпадают'});
-Object.assign(I18N.kk,{editProfile:'Профильді өңдеу',h1a:'Сенің жолың',h1b:'бағдарламалау әлеміне',h1c:'осы жерден басталады.',h1p:'Тесттер тапсыр, тапсырмаларды орында және TestSpace-пен дағдыларыңды дамыт.',sphHint:'Сфераны тінтуірмен айналдыр',welcome:'Қош келдіңіз!',welcomeSub:'Жалғастыру үшін аккаунтыңызға кіріңіз.',authLoginSub0:'Аккаунтқа кіру',confirmPass:'Құпиясөзді растаңыз',remember:'Мені еске сақта',forgot:'Құпиясөзді ұмыттыңыз ба?',orVia:'немесе былай кіріңіз',soon:'Жақында қолжетімді болады',passMismatch:'Құпиясөздер сәйкес емес'});
+Object.assign(I18N.kk,{editProfile:'Жеке бетті өңдеу',h1a:'Сенің жолың',h1b:'бағдарламалау әлеміне',h1c:'осы жерден басталады.',h1p:'Тесттер тапсыр, тапсырмаларды орында және TestSpace-пен дағдыларыңды дамыт.',sphHint:'Сфераны тінтуірмен айналдыр',welcome:'Қош келдіңіз!',welcomeSub:'Жалғастыру үшін аккаунтыңызға кіріңіз.',authLoginSub0:'Аккаунтқа кіру',confirmPass:'Құпиясөзді растаңыз',remember:'Мені еске сақта',forgot:'Құпиясөзді ұмыттыңыз ба?',orVia:'немесе былай кіріңіз',soon:'Жақында қолжетімді болады',passMismatch:'Құпиясөздер сәйкес емес'});
 Object.assign(I18N.en,{editProfile:'Edit profile',h1a:'Your path',h1b:'into the world of programming',h1c:'starts here.',h1p:'Take tests, complete tasks and grow your skills with TestSpace.',sphHint:'Drag the sphere to rotate it',welcome:'Welcome!',welcomeSub:'Sign in to your account to continue.',authLoginSub0:'Sign in',confirmPass:'Confirm password',remember:'Remember me',forgot:'Forgot password?',orVia:'or sign in with',soon:'Coming soon',passMismatch:'Passwords do not match'});
 
 function drawSide() {
   const U = S.user.role, it = U == 'user' ? [['home', 'home'], ['tests', 'doc'], ['catalog', 'globe'], ['profile', 'user']] : [['home', 'home'], ['tests', 'doc'], ['groups', 'users'], ['catalog', 'globe'], ['profile', 'user'], ...(U == 'teacher' ? [['stats', 'gear']] : [])];
-  $('nav').innerHTML = `<aside class="side"><a class="brand" onclick="show('home')">${logoSVG()}<span><b>Test<i>Space</i></b></span></a><nav>${it.map(([k, i]) => `<a class="si ${k == S.tab ? 'on' : ''}" onclick="show('${k}')">${ic(i)}${t('s_' + k)}</a>`).join('')}</nav><a class="si hlp" onclick="helpM()">${ic('help')}${t('cq_help')}</a><a class="si logout" onclick="logout()">${ic('logout')}${t('logout')}</a></aside>`;
+  $('nav').innerHTML = `<aside class="side"><a class="brand" onclick="show('home')">${logoSVG()}<span><b>Test<i>Space</i></b></span></a><nav>${it.map(([k, i]) => `<a class="si ${k == S.tab ? 'on' : ''}" onclick="show('${k}')">${ic(i)}${t('s_' + k)}</a>`).join('')}</nav><a class="si hlp" onclick="helpM()">${ic('help')}${t('cq_help')}</a><a class="si logout" onclick="logout()">${ic('logout')}${pw('logoutAccount')}</a></aside>`;
 }
 async function pHome() {
   if (S.user.role == 'user') return pHomeU();
   const [gs, ts] = await Promise.all([api('/groups'), api('/tests')]), T = S.user.role === 'teacher', av = ts.find(x => !(x.attempt && x.attempt.finished)) || ts[0];
-  $('v').innerHTML = `<div class="pg"><div><h1>${t('hello').replace('{n}', first())}</h1><p>${t('homeSub')}</p></div><span class="ava">${ini(S.user.name)}</span></div>
+  $('v').innerHTML = `<div class="pg"><div><h1>${t('hello').replace('{n}', first())}</h1><p>${t('homeSub')}</p></div>${profileAvatar(S.user)}</div>
   <div class="dcs"><div class="dc"><span class="dci">${ic('play')}</span><div><small>${t('curLesson')}</small><b>${av ? esc(av.title) : '—'}</b></div></div><div class="dc"><span class="dci">${ic('clock')}</span><div><small>${t('timeLeft')}</small><b class="mono">${av && av.timerMode == 'total' ? av.minutes + ':00' : '--:--'}</b></div></div><div class="dc"><span class="dci">1</span><div><small>${t('oneTry')}</small><small>${t('oneTryD')}</small></div></div></div>
   <h3 class="h3">${t('avail')}</h3>${av ? `<div class="dc wide"><span class="ico mono">&lt;/&gt;</span><div class="grow"><b>${esc(av.title)}</b><p class="mut">${esc(av.groupName)} · ${av.count} ${t('qCount')}</p></div><button class="btn" onclick="${T ? "show('tests')" : `startTest('${av.id}')`}">${t(T ? 'monitor' : 'start')} →</button></div>` : `<div class="dc wide mut">${t('noSTests')}</div>`}
   <h3 class="h3">${t('myGroups')}</h3>${gs.map(g => `<div class="dc wide" style="cursor:pointer" onclick="show('groups')"><span class="av">#</span><div class="grow"><b>${esc(g.name)}</b>${T ? `<p class="mut">${t('students')}: ${g.students.length}</p>` : ''}</div>›</div>`).join('') || `<div class="dc wide mut">${t('noMyGroups')}</div>`}`;
 }
+const profileAvatar = (u, big = false) => u?.avatar && /^data:image\/(?:jpeg|png|webp);base64,/.test(u.avatar)
+  ? `<img class="ava ${big?'big':''}" src="${u.avatar}" alt="" style="object-fit:cover;flex-shrink:0">`
+  : `<span class="ava ${big?'big':''}">${ini(u?.name)}</span>`;
+const profileWords = {
+ ru:{details:'Личные данные',preferences:'Настройки',logoutAccount:'Выйти из аккаунта',about:'О себе',upload:'Выбрать фото',remove:'Удалить фото',save:'Сохранить изменения',saved:'Профиль сохранён',max:'Описание: не более 300 символов',photoHelp:'Фото будет сжато перед сохранением',badPhoto:'Выберите файл изображения до 5 МБ',saveError:'Не удалось сохранить профиль. Проверьте правила Firebase.'},
+ kk:{details:'Жеке мәліметтер',preferences:'Баптаулар',logoutAccount:'Аккаунттан шығу',about:'Өзі туралы',upload:'Сурет таңдау',remove:'Суретті жою',save:'Өзгерістерді сақтау',saved:'Жеке бет сақталды',max:'Сипаттама 300 таңбадан аспауы тиіс',photoHelp:'Сурет сақталмас бұрын автоматты түрде кішірейтіледі',badPhoto:'5 МБ-тан аспайтын суретті таңдаңыз',saveError:'Жеке бет сақталмады. Firebase ережелерін тексеріңіз.'},
+ en:{details:'Personal information',preferences:'Preferences',logoutAccount:'Log out of account',about:'About me',upload:'Choose photo',remove:'Remove photo',save:'Save changes',saved:'Profile saved',max:'Bio: up to 300 characters',photoHelp:'Photo is resized before saving',badPhoto:'Choose an image under 5 MB',saveError:'Could not save profile. Check Firebase rules.'}
+};
+const pw = k => (profileWords[S.lang] || profileWords.ru)[k];
+let avatarDraft = null;
 async function pProfile() {
-  $('v').innerHTML = `<div class="pg"><h1>${t('s_profile')}</h1></div><div class="panel"><div class="pb form"><div style="display:flex;gap:16px;align-items:center"><span class="ava big">${ini(S.user.name)}</span><div><h2>${esc(S.user.name)}</h2><span class="chip">${t(S.user.role)}</span></div></div>
-  <label>${t('theme')}</label><select class="inp" onchange="setTheme(this.value);show('profile')">${['light', 'dark', 'system'].map(m => `<option value=${m} ${(localStorage.theme || 'system') == m ? 'selected' : ''}>${t(m)}</option>`).join('')}</select>
-  <label>${t('langL')}</label><select class="inp" onchange="setLang(this.value)">${['ru', 'kk', 'en'].map(l => `<option value=${l} ${S.lang == l ? 'selected' : ''}>${{ ru: 'Русский', kk: 'Қазақша', en: 'English' }[l]}</option>`).join('')}</select>
-  <button class="btn2" onclick="editProfile()">${t('editProfile')}</button><button class="btn2 coral" onclick="logout()">${t('logout')}</button></div></div>`;
+  avatarDraft = S.user.avatar || '';
+  $('v').innerHTML = `<div class="pg"><h1>${t('s_profile')}</h1></div>
+  <div class="panel profile-panel"><div class="pb form profile-content">
+    <div class="profile-top">
+      <div class="profile-person">${profileAvatar(S.user,true)}<div class="profile-person-name"><h2>${esc(S.user.name)}</h2><span class="chip">${t(S.user.role)}</span></div></div>
+      <div class="profile-photo-actions"><div class="profile-action-buttons"><label class="btn2" style="cursor:pointer">${pw('upload')}<input type="file" id="profilePhoto" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="changeProfilePhoto(this)"></label>
+        <button class="btn2" onclick="removeProfilePhoto()">${pw('remove')}</button></div><small class="mut">${pw('photoHelp')}</small></div>
+    </div>
+    <div class="profile-grid">
+      <section class="profile-section"><h3>${pw('details')}</h3>
+        <label for="profileName">${t('name')}</label><input id="profileName" class="inp" maxlength="60" value="${esc(S.user.name)}">
+        <label for="profileBio">${pw('about')}</label><textarea id="profileBio" class="inp" rows="6" maxlength="300">${esc(S.user.bio || '')}</textarea>
+        <small class="mut">${pw('max')}</small>
+      </section>
+      <section class="profile-section"><h3>${pw('preferences')}</h3>
+        <label for="profileTheme">${t('theme')}</label><select id="profileTheme" class="inp" onchange="setTheme(this.value);show('profile')">${['light','dark','system'].map(m=>`<option value="${m}" ${(localStorage.theme||'system')===m?'selected':''}>${t(m)}</option>`).join('')}</select>
+        <label for="profileLanguage">${t('langL')}</label><select id="profileLanguage" class="inp" onchange="setLang(this.value)">${['ru','kk','en'].map(l=>`<option value="${l}" ${S.lang===l?'selected':''}>${{ru:'Русский',kk:'Қазақша',en:'English'}[l]}</option>`).join('')}</select>
+      </section>
+    </div>
+    <div class="profile-footer"><button class="btn profile-save" onclick="editProfile()">${pw('save')}</button><button class="btn2 coral profile-exit" onclick="logout()">${pw('logoutAccount')}</button></div>
+  </div></div>`;
 }
-
+async function changeProfilePhoto(el) {
+  const file = el.files?.[0];
+  if (!file) return;
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5*1024*1024) { toast(pw('badPhoto')); return; }
+  try {
+    const bmp = await createImageBitmap(file);
+    const c = document.createElement('canvas'); c.width = 160; c.height = 160;
+    const ctx = c.getContext('2d');
+    const side=Math.min(bmp.width,bmp.height), x=(bmp.width-side)/2, y=(bmp.height-side)/2;
+    ctx.drawImage(bmp,x,y,side,side,0,0,160,160); bmp.close?.();
+    avatarDraft = c.toDataURL('image/jpeg',0.72);
+    if (avatarDraft.length > 80000) throw new Error('oversize');
+    const old = document.querySelector('.pb.form .ava.big');
+    if (old) { const img=document.createElement('img');img.className='ava big';img.style.cssText='object-fit:cover;flex-shrink:0';img.src=avatarDraft;old.replaceWith(img); }
+  } catch(e) { toast(pw('badPhoto')); }
+}
+function removeProfilePhoto() {
+  avatarDraft='';const old=document.querySelector('.pb.form .ava.big');
+  if(old){const span=document.createElement('span');span.className='ava big';span.textContent=(S.user.name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();old.replaceWith(span)}
+}
 async function editProfile() {
-  const n = prompt(t('name'), S.user.name); if (!n || !n.trim()) return;
-  try { S.user = await api('/me', 'PUT', { name: n.trim() }); } catch (e) { S.user.name = n.trim(); }
-  drawNav(); show('profile');
+  const name = $('profileName').value.trim(), bio = $('profileBio').value.trim();
+  if (!name || name.length > 60 || bio.length > 300) { toast(t('errInvalid'));return; }
+  try { S.user = await api('/me','PUT',{name,bio,avatar:avatarDraft||''}); drawNav();toast(pw('saved'));show('profile'); }
+  catch(e) { console.error(e);toast(pw('saveError')); }
 }
 Object.assign(I18N.ru, { s_home: 'Главная', s_tests: 'Задания', s_groups: 'Группы', s_messages: 'Сообщения', s_profile: 'Профиль', s_stats: 'Настройки', homeSub: 'Рады видеть тебя на платформе TestSpace!', curLesson: 'Текущий урок', timeLeft: 'Оставшееся время', oneTry: 'Одна попытка', oneTryD: 'Время вышло — задание будет автоматически завершено.', avail: 'Доступное задание', theme: 'Тема', langL: 'Язык', writeMsg: 'Написать сообщение...' });
 Object.assign(I18N.ru,{editProfile:'Редактировать профиль',h1p:'Проходи тесты, выполняй задания<br>и развивай свои навыки вместе с TestSpace.',simple:'Просто. Удобно. Эффективно.',about:'О нас',loginS:'Рады видеть вас снова! Войдите, чтобы продолжить.',regT:'Регистрация',wl1:'Создайте аккаунт',wl2:'Присоединяйтесь к TestSpace и начните учиться.',labName:'Имя',labMail:'Email',labLogin:'Email или логин',phName:'Ваше имя',phPass:'Введите пароль',phPass2:'Придумайте пароль',phRep:'Повторите пароль',no2:'Нет аккаунта?',regLink:'Зарегистрируйтесь',have2:'Уже есть аккаунт?'});
 Object.assign(I18N.ru,{"s_catalog": "Каталог", "roleUser": "Участник", "user": "Участник", "accessL": "Кто может пройти", "acc_group": "Только моя группа", "acc_public": "Публичное", "acc_private": "Приватное (по коду)", "accCode": "Код доступа", "accCodeP": "Пусто — создастся сам", "deadlineL": "Срок сдачи (необязательно)", "dlUntil": "до", "dlPassed": "Срок сдачи истёк", "dlPast": "Срок сдачи уже в прошлом", "photo": "Фото к вопросу", "catTitle": "Каталог заданий", "catSub": "Публичные задания от всех. Для приватного введите код.", "codeIn": "Код приватного задания", "openCode": "Открыть по коду", "search": "Поиск", "noCat": "Пока нет публичных заданий", "joined": "Задание добавлено в «Задания»", "noCode": "Код не найден", "ownTest": "Это ваше задание", "codeShort": "Код: минимум 4 символа (буквы и цифры)", "codeTaken": "Такой код уже занят", "delTest": "Удалить", "delAsk": "Удалить задание и все результаты?", "copied": "Скопировано", "myTasks": "Мои задания", "taken": "Задания для прохождения", "createdSaved": "Задание создано", "createdCode": "Задание создано. Код:", "errDeadline": "Срок сдачи уже прошёл", "uHomeSub": "Создавайте задания и проходите чужие."});
-Object.assign(I18N.kk,{"s_catalog": "Каталог", "roleUser": "Қатысушы", "user": "Қатысушы", "accessL": "Кім тапсыра алады", "acc_group": "Тек менің тобым", "acc_public": "Ашық", "acc_private": "Жабық (код бойынша)", "accCode": "Қолжетімділік коды", "accCodeP": "Бос — өзі жасалады", "deadlineL": "Тапсыру мерзімі (міндетті емес)", "dlUntil": "дейін", "dlPassed": "Тапсыру мерзімі өтті", "dlPast": "Мерзім өтіп кеткен", "photo": "Сұраққа сурет", "catTitle": "Тапсырмалар каталогы", "catSub": "Барлығының ашық тапсырмалары. Жабық үшін кодты енгізіңіз.", "codeIn": "Жабық тапсырма коды", "openCode": "Код бойынша ашу", "search": "Іздеу", "noCat": "Ашық тапсырмалар әлі жоқ", "joined": "Тапсырма «Тапсырмалар» бөліміне қосылды", "noCode": "Код табылмады", "ownTest": "Бұл сіздің тапсырмаңыз", "codeShort": "Код: кемінде 4 таңба (әріп пен сан)", "codeTaken": "Бұл код бос емес", "delTest": "Жою", "delAsk": "Тапсырма мен барлық нәтижелерді жою керек пе?", "copied": "Көшірілді", "myTasks": "Менің тапсырмаларым", "taken": "Тапсыруға арналған тапсырмалар", "createdSaved": "Тапсырма жасалды", "createdCode": "Тапсырма жасалды. Коды:", "errDeadline": "Тапсыру мерзімі өтіп кетті", "uHomeSub": "Тапсырмалар жасаңыз және басқалардікін тапсырыңыз."});
+Object.assign(I18N.kk,{"s_catalog": "Тапсырмалар жинағы", "roleUser": "Қатысушы", "user": "Қатысушы", "accessL": "Кім тапсыра алады", "acc_group": "Тек менің тобым", "acc_public": "Ашық", "acc_private": "Жабық (код бойынша)", "accCode": "Қолжетімділік коды", "accCodeP": "Бос — өзі жасалады", "deadlineL": "Тапсыру мерзімі (міндетті емес)", "dlUntil": "дейін", "dlPassed": "Тапсыру мерзімі өтті", "dlPast": "Мерзім өтіп кеткен", "photo": "Сұраққа сурет", "catTitle": "Тапсырмалар жинағы", "catSub": "Барлығының ашық тапсырмалары. Жабық үшін кодты енгізіңіз.", "codeIn": "Жабық тапсырма коды", "openCode": "Код бойынша ашу", "search": "Іздеу", "noCat": "Ашық тапсырмалар әлі жоқ", "joined": "Тапсырма «Тапсырмалар» бөліміне қосылды", "noCode": "Код табылмады", "ownTest": "Бұл сіздің тапсырмаңыз", "codeShort": "Код: кемінде 4 таңба (әріп пен сан)", "codeTaken": "Бұл код бос емес", "delTest": "Жою", "delAsk": "Тапсырма мен барлық нәтижелерді жою керек пе?", "copied": "Көшірілді", "myTasks": "Менің тапсырмаларым", "taken": "Тапсыруға арналған тапсырмалар", "createdSaved": "Тапсырма жасалды", "createdCode": "Тапсырма жасалды. Коды:", "errDeadline": "Тапсыру мерзімі өтіп кетті", "uHomeSub": "Тапсырмалар жасаңыз және басқалардікін тапсырыңыз."});
 Object.assign(I18N.en,{"s_catalog": "Catalog", "roleUser": "Member", "user": "Member", "accessL": "Who can take it", "acc_group": "My group only", "acc_public": "Public", "acc_private": "Private (by code)", "accCode": "Access code", "accCodeP": "Empty — generated automatically", "deadlineL": "Deadline (optional)", "dlUntil": "until", "dlPassed": "Deadline has passed", "dlPast": "Deadline is in the past", "photo": "Photo for the question", "catTitle": "Task catalog", "catSub": "Public tasks from everyone. Enter a code for a private one.", "codeIn": "Private task code", "openCode": "Open by code", "search": "Search", "noCat": "No public tasks yet", "joined": "Task added to “Tasks”", "noCode": "Code not found", "ownTest": "This is your task", "codeShort": "Code: at least 4 characters (letters and digits)", "codeTaken": "This code is already taken", "delTest": "Delete", "delAsk": "Delete the task and all results?", "copied": "Copied", "myTasks": "My tasks", "taken": "Tasks to take", "createdSaved": "Task created", "createdCode": "Task created. Code:", "errDeadline": "The deadline has passed", "uHomeSub": "Create tasks and take other people’s."});
 Object.assign(I18N.ru,{"mt_fullscreen": "Ты вышел из полного экрана!", "mt_tab": "Ты покинул вкладку теста!", "mt_paste": "Ты пытаешься списать!", "mt_key": "Ты пытаешься списать!", "mon_h1": "Ещё одна попытка?", "mon_over": "Попытки закончились!", "monText": "Мы заметили подозрительную активность. Пожалуйста, решай задания самостоятельно. Списывание запрещено!", "monFinal": "Попытки закончились. Работа отправлена автоматически, учитель видит все нарушения.", "monSend": "Отправить", "monCancel": "Отмена", "tries": "попытки", "regS": "Создай аккаунт и начни решать задачи прямо сейчас!", "iStudent": "Я ученик", "iTeacher": "Я учитель", "iUser": "Я участник", "labName": "Имя"});
 Object.assign(I18N.kk,{"mt_fullscreen": "Сен толық экраннан шықтың!", "mt_tab": "Сен тест қойындысынан шықтың!", "mt_paste": "Сен көшіруге тырысып жатырсың!", "mt_key": "Сен көшіруге тырысып жатырсың!", "mon_h1": "Тағы бір әрекет пе?", "mon_over": "Әрекеттер таусылды!", "monText": "Біз күдікті әрекетті байқадық. Тапсырмаларды өзің орында. Көшіруге тыйым салынған!", "monFinal": "Әрекеттер таусылды. Жұмыс автоматты түрде жіберілді, мұғалім барлық бұзуларды көреді.", "monSend": "Жіберу", "monCancel": "Бас тарту", "tries": "әрекет", "regS": "Аккаунт ашып, тапсырмаларды қазір шеше бастаңыз!", "iStudent": "Мен оқушымын", "iTeacher": "Мен мұғаліммін", "iUser": "Мен қатысушымын", "labName": "Аты-жөні"});
@@ -683,3 +729,29 @@ theme();
 Object.assign(I18N.ru, {ts_available:'Доступные задания',ts_completed:'Выполненные задания',ts_no_available:'Нет доступных заданий',ts_no_available_desc:'Все назначенные задания уже выполнены.',ts_previous:'Назад',ts_submit_error:'Не удалось сохранить результат. Проверьте интернет и попробуйте снова.'});
 Object.assign(I18N.kk, {ts_available:'Қолжетімді тапсырмалар',ts_completed:'Орындалған тапсырмалар',ts_no_available:'Қолжетімді тапсырмалар жоқ',ts_no_available_desc:'Барлық берілген тапсырмалар орындалған.',ts_previous:'Артқа',ts_submit_error:'Нәтиже сақталмады. Интернетті тексеріп, қайта көріңіз.'});
 Object.assign(I18N.en, {ts_available:'Available tasks',ts_completed:'Completed tasks',ts_no_available:'No available tasks',ts_no_available_desc:'All assigned tasks are complete.',ts_previous:'Back',ts_submit_error:'Could not save the result. Check your connection and try again.'});
+
+Object.assign(I18N.kk,{homeSub:'TestSpace платформасына қош келдіңіз!',curLesson:'Ағымдағы сабақ',timeLeft:'Қалған уақыт',oneTry:'Бір мүмкіндік',oneTryD:'Уақыт аяқталса, тапсырма автоматты түрде жіберіледі.',avail:'Қолжетімді тапсырма',s_home:'Басты бет',s_tests:'Тапсырмалар',s_groups:'Топтар',s_profile:'Жеке бет',s_stats:'Баптаулар',theme:'Тақырып',langL:'Тіл'});
+Object.assign(I18N.en,{homeSub:'Welcome to TestSpace!',curLesson:'Current lesson',timeLeft:'Time remaining',oneTry:'One attempt',oneTryD:'When time expires, the task is submitted automatically.',avail:'Available task',s_home:'Home',s_tests:'Tasks',s_groups:'Groups',s_profile:'Profile',s_stats:'Settings',theme:'Theme',langL:'Language'});
+
+
+// Missing localized interface labels. Keep all three dictionaries complete.
+Object.assign(I18N.kk, {
+  student_: '', s_messages: 'Хабарламалар', writeMsg: 'Хабарлама жазу...',
+  simple: 'Қарапайым. Ыңғайлы. Тиімді.', about: 'Біз туралы',
+  loginS: 'Қайта келгеніңізге қуаныштымыз! Жалғастыру үшін жүйеге кіріңіз.',
+  regT: 'Тіркелу', wl1: 'Аккаунт ашу', wl2: 'TestSpace платформасына тіркеліп, оқуды бастаңыз.',
+  labMail: 'Электрондық пошта', labLogin: 'Электрондық пошта немесе логин',
+  phName: 'Атыңызды енгізіңіз', phPass: 'Құпиясөзді енгізіңіз',
+  phPass2: 'Құпиясөз ойлап табыңыз', phRep: 'Құпиясөзді қайталаңыз',
+  no2: 'Аккаунтыңыз жоқ па?', regLink: 'Тіркеліңіз', have2: 'Аккаунтыңыз бар ма?'
+});
+Object.assign(I18N.en, {
+  student_: '', s_messages: 'Messages', writeMsg: 'Write a message...',
+  simple: 'Simple. Convenient. Effective.', about: 'About us',
+  loginS: 'Welcome back! Sign in to continue.',
+  regT: 'Register', wl1: 'Create an account', wl2: 'Join TestSpace and start learning.',
+  labMail: 'Email', labLogin: 'Email or username',
+  phName: 'Your name', phPass: 'Enter your password',
+  phPass2: 'Choose a password', phRep: 'Repeat password',
+  no2: 'No account?', regLink: 'Register', have2: 'Already have an account?'
+});
